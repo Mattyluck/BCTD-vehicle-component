@@ -4,7 +4,7 @@
 
 A novel approach for trusted detection of Electronic Control Unit (ECU) components in intelligent vehicles throughout their lifecycle using blockchain technology and zero-knowledge proofs.
 
-## Overview
+## Project Overview
 
 BCTD-ECU is a comprehensive solution that addresses the security challenges in the supply chain management of intelligent vehicle ECU components. As vehicles evolve into highly informatized and networked complex systems, their electronic control systems face increased security risks due to expanded attack surfaces and complex supply chains.
 
@@ -120,9 +120,11 @@ The source code compression module uses DBSCAN clustering to reduce the source c
 # Extract DBSCAN implementation
 unzip DBSCAN.zip -d dbscan
 cd dbscan
-
 # Run compression on sample code
-go run compression.go -input /path/to/source/code -output /path/to/output -ratio 0.26
+mkdir build && cd build
+cmake ..
+make
+./cluster_analysis --input-dir=<source_code_path> --eps=1 --min_samples=5 --output=<compressed_output>
 ```
 
 ### Generating and Verifying Zero-Knowledge Proofs
@@ -150,10 +152,12 @@ The Handle-based identification and resolution system provides precise tracking 
 # Extract identifier resolution implementation
 unzip ParseProtocol.zip -d parse_protocol
 cd parse_protocol
-# Generate a new component identifier
-go run generate.go -component /path/to/component/data
-# Verify component authenticity
-go run verify.go -id "component_id"
+# Generate and Verify component identifier
+mkdir build && cd build
+cmake ..
+make
+./generate --component-id=<id> --manufacturer=<manufacturer> --code-hash=<hash>
+./parse --handle-id=<handle> --resolve-type=<type>
 ```
 
 ## Experimental Results
@@ -167,13 +171,28 @@ Based on our evaluations:
 
 ## Technical Details
 
+### Handle-Based Component Identification
+
+The Handle-based component identification system implemented in the ParseProtocol module consists of:
+
+- `generate.cpp`: Creates unique identifiers for ECU components with embedded metadata
+- `parse.cpp`: Resolves and validates component identifiers across the supply chain
+
+The system creates a 14-field UTF-8 encoded identifier for each component.This enables precise tracking throughout the component lifecycle with millisecond-level resolution performance.
+
 ### DBSCAN Clustering
 
-The DBSCAN algorithm is employed for source code compression, which uses code complexity metrics (V(G), M, H) to identify and extract representative code segments.
+The DBSCAN (Density-Based Spatial Clustering of Applications with Noise) algorithm implementation in `cluster_analysis.cpp` identifies and clusters similar code segments based on cyclomatic complexity, method count, and halstead complexity metrics. The implementation includes:
+
+- `cluster_analysis.cpp/h`: Core clustering implementation
+- `data_point.cpp/h`: Data structures for code metrics representation
+- `main.cpp`: Command-line interface for the clustering tool
+
+The algorithm achieves approximately 26% code compression without losing critical security verification capabilities by selecting representative code segments from each cluster, significantly reducing the computational overhead in the zero-knowledge proof generation process.
 
 ### Shamir Secret Sharing
 
-An improved Shamir secret sharing scheme is implemented to enhance the trusted setup phase of the Groth16 ZK-SNARKs protocol, effectively preventing backdoor risks.
+A multi-party computation approach using Shamir's Secret Sharing is implemented to ensure that no single party possesses the complete trusted setup parameters for the ZK-SNARKs system, preventing potential backdoor attacks.
 
 ### Blockchain Architecture
 
